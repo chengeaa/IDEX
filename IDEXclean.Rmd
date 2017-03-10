@@ -6,6 +6,11 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+require(readr)
+```
+
+```{r}
+revenue = read_csv("C://Users/Erik Cheng/IDEX/mar16-mar17.csv")
+#so uh wth is the difference between consulatants and consultants2
 ```
 
