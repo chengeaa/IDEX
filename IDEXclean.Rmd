@@ -1,0 +1,11 @@
+---
+title: "IDEX cleaning"
+author: "me"
+date: "March 9, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
