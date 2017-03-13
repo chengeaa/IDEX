@@ -10,7 +10,21 @@ require(readr)
 ```
 
 ```{r}
-revenue = read_csv("C://Users/Erik Cheng/IDEX/mar16-mar17.csv")
+revenue = read_csv("C://Users/Erik Cheng/IDEX/7yr.csv")
 #so uh wth is the difference between consulatants and consultants2
+```
+```{r}
+names = gsub(" -.*", "", revenue$`Donation Name`)
+nonrep = unique(names)
+repped = function(names){
+  repped = character()
+  for (i in names) {
+    if (length(grep(i, names)) > 1){
+      repped = c(repped, i)
+    }
+  }
+  return (unique(repped))
+}
+repeats = repped(names)
 ```
 
