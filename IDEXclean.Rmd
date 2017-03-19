@@ -50,4 +50,24 @@ IDEX  = revenue[revenue$`Campaign Name` != "BlackLivesMatter",]
 donors= read_csv("C://Users/Erik Cheng/IDEX/fy15dups.csv")
 alldonations = read_csv("C://Users/Erik Cheng/IDEX/7yr.csv")
 ```
+```{r}
+merged = read_csv("C://Users/Erik Cheng/IDEX/Aggregated Data.csv")
+```
+
+
+```{r}
+##name cleaning cell, accounts for random quotation marks
+
+newcont = read.csv("C://Users/Erik Cheng/IDEX/newconts.csv")
+cleannames = function(first, last) {
+  first = gsub('"',"", first)
+  last = gsub('"', "", last)
+  return(paste(first, last))
+}
+fullnames = cleannames(newcont$First.Name, newcont$Last.Name)
+
+newcont$Full.Name = fullnames
+
+write.table(newcont, file = "newcont.csv", sep = ",")
+```
 
