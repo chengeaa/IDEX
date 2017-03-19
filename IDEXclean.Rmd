@@ -14,9 +14,9 @@ revenue = read_csv("C://Users/Erik Cheng/IDEX/7yr.csv")
 #so uh wth is the difference between consulatants and consultants2
 ```
 ```{r}
-names = gsub(" -.*", "", revenue$`Donation Name`)
-nonrep = unique(names)
-repped = function(names){
+names = gsub(" -.*", "", revenue$`Donation Name`) #removes the date from donor name in donation name column
+nonrep = unique(names) #vector of all unique entries in names
+repped = function(names){ #function that extracts any name that appears twice, returns vector of these repeats
   repped = character()
   for (i in names) {
     if (length(grep(i, names)) > 1){
@@ -25,6 +25,29 @@ repped = function(names){
   }
   return (unique(repped))
 }
-repeats = repped(names)
+repeats = repped(names)#vector of names that have been repeated
+
+inreps = function(name){ #determines if the name passed in is in list of repeated names
+  return(any(grepl(name, repeats)))
+}
+
+keep = sapply(names, inreps)
+reprev = revenue[keep,] #subsets revenue table to identify potential duplicates
+
+
+```
+
+```{r}
+BLM = revenue[revenue$`Campaign Name` == "BlackLivesMatter",]
+IDEX  = revenue[revenue$`Campaign Name` != "BlackLivesMatter",]
+# write.csv(BLM, "C://Users/Erik Cheng/IDEX/BLM donations.csv")
+# write.csv(IDEX, "C://Users/Erik Cheng/IDEX/IDEX donations.csv")
+```
+
+
+
+```{r}
+donors= read_csv("C://Users/Erik Cheng/IDEX/fy15dups.csv")
+alldonations = read_csv("C://Users/Erik Cheng/IDEX/7yr.csv")
 ```
 
