@@ -34,8 +34,15 @@ ui <- fluidPage(
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  orghistory = read_csv("Total Organization History Data.csv")
+  donations = read_csv("Total Donations.csv")
+  camps = read_csv("Total Campaigns.csv")
+  merge1 = merge(donations, camps, by.x = "Campaign", by.y = "Campaign Name")
+  merge2 = merge(merge1, orghistory, by.x = "Organization Name", by.y = "Organization Name")
+  
   output$mytable = renderDataTable({
-    read_csv("C://Users/Erik Cheng/IDEX/ugly.csv")
+    merge2
+    # read_csv("C://Users/Erik Cheng/IDEX/ugly.csv")
     #mtcars
   })
 }
