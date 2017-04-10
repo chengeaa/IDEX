@@ -10,43 +10,77 @@
 library(shiny)
 require(readr)
 
-# Define UI for application that draws a histogram
+orghistory = read_csv("Total Organization History Data.csv")
+donations = read_csv("Total Donations.csv")
+camps = read_csv("Total Campaigns.csv")
+merge1 = merge(donations, camps, by.x = "Campaign", by.y = "Campaign Name")
+merge2 = merge(merge1, orghistory, by.x = "Organization Name", by.y = "Organization Name")
+
+aggfuncs = vector(mode = "list", length = 4)
+names(aggfuncs) = c("Mean", "Max", "Min", "Sum")
+aggfuncs[[1]] = mean
+aggfuncs[[2]] = max
+aggfuncs[[3]] = min
+aggfuncs[[4]] = sum
+
 ui <- fluidPage(
-   
-   # Application title
+  
    titlePanel("IDEX data subsetting"),
    
-   # Sidebar with a slider input for number of bins 
    sidebarLayout(
       sidebarPanel(
-         textInput(
+         selectInput(
            inputId = "groupLabel",
-           label = "Group by:"
-         ), width = 1
+           label = "Group by:",
+           choices = c("all", names(merge2)),
+           selected = "all"
+         ),
+         selectInput(
+           inputId = "agg",
+           label = "Aggregate:",
+           choices = c("None", names(aggfuncs)),
+           selected = "None"
+         )
+         , width = 2
       ),
-      
-      # Show a plot of the generated distribution
       mainPanel(
         dataTableOutput('mytable')
       )
    )
 )
 
-# Define server logic required to draw a histogram
 server <- function(input, output) {
-  orghistory = read_csv("Total Organization History Data.csv")
-  donations = read_csv("Total Donations.csv")
-  camps = read_csv("Total Campaigns.csv")
-  merge1 = merge(donations, camps, by.x = "Campaign", by.y = "Campaign Name")
-  merge2 = merge(merge1, orghistory, by.x = "Organization Name", by.y = "Organization Name")
-  
-  output$mytable = renderDataTable({
-    merge2
-    # read_csv("C://Users/Erik Cheng/IDEX/ugly.csv")
-    #mtcars
+  observeEvent(c(input$groupLabel, input$agg),{
+    if(input$groupLabel != "all"){
+      index = match(input$groupLabel, names(merge2))
+      df <- data.frame(merge2[,index])
+      names(df) <- input$groupLabel
+      
+        if(input$agg != "None"){
+          aggregator = match(input$agg, names(aggfuncs))
+          agglbl = paste(input$agg, "of Donations")
+          
+          
+          df = aggregate(x = merge2$Amount, 
+                         by = list(merge2[,index]), 
+                         FUN = aggfuncs[[aggregator]])
+          names(df)[names(df) == "x"] = agglbl
+          
+        } else {
+          df <- data.frame(unique(merge2[,index]))
+          names(df) <- input$groupLabel
+        }
+      
+      output$mytable = renderDataTable(df)
+    } else {
+      output$mytable = renderDataTable(merge2)
+      
+    }
+    
+    
   })
+
 }
 
-# Run the application 
 shinyApp(ui = ui, server = server)
 
