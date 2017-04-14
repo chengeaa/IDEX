@@ -59,13 +59,19 @@ ui <- fluidPage(
 server <- function(input, output) {
   df= merge2
   observeEvent(input$columns, {
-    if(input$columns == "all"){
+    if("all" %in% input$columns && length(input$columns) == 1){
       df = merge2
     } else {
-      present = names(merge2) %in% input$columns
+      incols = input$columns
+      present = names(merge2) %in% incols
       cols = which(present)
+      print(cols)
+      if (length(cols != 1)){
+        df = merge2[,cols]
+      } else {
+        df = data.frame(merge2[,cols])
+      }
       
-      df = merge2[,cols]
     }
     output$mytable = renderDataTable(df)
   })
