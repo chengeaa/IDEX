@@ -24,40 +24,64 @@ aggfuncs[[2]] = max
 aggfuncs[[3]] = min
 aggfuncs[[4]] = sum
 
-ui <- fluidPage(
-  
-   titlePanel("IDEX data subsetting"), 
-   sidebarLayout(
-      sidebarPanel(
-        selectInput(
-          inputId = "columns",
-          label = "Select:",
-          choices = c("all", names(merge2)),
-          selected = "all",
-          multiple = TRUE
-        ),
-        selectInput(
-           inputId = "groupLabel",
-           label = "Group by:",
-           choices = c("all", names(merge2)),
-           selected = "all"
-         ),
-         selectInput(
-           inputId = "agg",
-           label = "Aggregate:",
-           choices = c("None", names(aggfuncs)),
-           selected = "None"
-         )
-         , width = 2
+ui = navbarPage(
+  "IDEX Data Cruncher",
+tabPanel(
+  "Table page",
+  titlePanel("IDEX data subsetting"), 
+  sidebarLayout(
+    sidebarPanel(
+      selectInput(
+        inputId = "columns",
+        label = "Select columns to display:",
+        choices = c("all", names(merge2)),
+        selected = "all",
+        multiple = TRUE
       ),
-      mainPanel(
-        dataTableOutput('mytable')
+      selectInput(
+        inputId = "groupLabel",
+        label = "Aggregate by:",
+        choices = c("all", names(merge2)),
+        selected = "all"
+      ),
+      selectInput(
+        inputId = "agg",
+        label = "Aggregate function:",
+        choices = c("None", names(aggfuncs)),
+        selected = "None"
+      ),
+      h3("Export CSV"),
+      h5("Enter a valid file name, then click export"),
+      textInput(
+        inputId = "filename",
+        label = "File name:"
+      ),
+      actionButton(
+        inputId = "generate",
+        label = "Export"
       )
-   )
+      , width = 2
+    ),
+    mainPanel(
+      dataTableOutput('mytable')
+    ),
+    fluid = TRUE
+  )
+  
+),
+tabPanel( "Vis page"
+  ##visualization goes here.
+  
+)
+   
 )
 
+
 server <- function(input, output) {
+  newtable = reactiveValues()
+  
   df= merge2
+  newtable$table = df
   observeEvent(input$columns, {
     if("all" %in% input$columns && length(input$columns) == 1){
       df = merge2
@@ -65,16 +89,13 @@ server <- function(input, output) {
       incols = input$columns
       present = names(merge2) %in% incols
       cols = which(present)
-      print(cols)
-      if (length(cols != 1)){
-        df = merge2[,cols]
-      } else {
-        df = data.frame(merge2[,cols])
-      }
+      df = data.frame(merge2[,cols])
       
     }
     output$mytable = renderDataTable(df)
+    newtable$table = df
   })
+  
   observeEvent(c(input$groupLabel, input$agg),{
     if(input$groupLabel != "all"){
       index = match(input$groupLabel, names(merge2))
@@ -103,8 +124,47 @@ server <- function(input, output) {
     }
     
   output$mytable = renderDataTable(df)
+  newtable$table = df
   })
-
+  
+  
+  observeEvent(input$generate, {
+    if(input$filename == "" || grepl("[/\\:*?\"<>|]", input$filename)){
+      print(input$filename)
+      print(grepl("/\\:*?\"<>|", input$filename))
+      showModal(
+        modalDialog(
+          title = "Invalid file name",
+          "Provide a file name; the following characters may not be used: /\\:*?\"<>|",
+          easyClose = TRUE
+        )
+      )
+    } else {
+      
+      tryCatch(
+        {
+          write.csv(newtable$table, file = paste(sub("\\s+$", "", input$filename), ".csv",sep = ""))
+          showModal(
+            modalDialog(
+              title = "Success",
+              paste("Table saved to ", sub("\\s+$", "", input$filename), ".csv"),
+              easyClose = TRUE
+            )
+          )
+        },
+        error = function(cond){
+          showModal(
+            modalDialog(
+              title = "Oops",
+              "Save unsuccessful",
+              easyClose = TRUE
+            )
+          )
+        }
+      )
+    }
+  }
+  )
 }
 
 shinyApp(ui = ui, server = server)
