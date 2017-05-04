@@ -9,12 +9,18 @@
 
 library(shiny)
 require(readr)
+library(lubridate)
 
 orghistory = read_csv("Total Organization History Data.csv")
 donations = read_csv("Total Donations.csv")
 camps = read_csv("Total Campaigns.csv")
 merge1 = merge(donations, camps, by.x = "Campaign", by.y = "Campaign Name")
 merge2 = merge(merge1, orghistory, by.x = "Organization Name", by.y = "Organization Name")
+merge2 = merge2[1:32161,]
+merge2$`Close Date` = as.Date(merge2$`Close Date`, format = "%m/%d/%Y") + years(2000)
+
+uniquedates = (unique(merge2$`Close Date`))
+ordereddates = uniquedates[order(uniquedates)]
 
 contactinfo = names(orghistory)
 aggfuncs = vector(mode = "list", length = 4)
@@ -31,6 +37,18 @@ tabPanel(
   titlePanel("IDEX data subsetting"), 
   sidebarLayout(
     sidebarPanel(
+      selectInput(
+        inputId = "startDate",
+        label = "Select a start date",
+        choices = ordereddates,
+        selected = ordereddates[1]
+      ),
+      selectInput(
+        inputId = "endDate",
+        label = "Select an end date",
+        choices = ordereddates,
+        selected = ordereddates[length(ordereddates)]
+      ),
       selectInput(
         inputId = "columns",
         label = "Select columns to display:",
@@ -82,6 +100,19 @@ server <- function(input, output) {
   
   df= merge2
   newtable$table = df
+  
+  observeEvent(c(input$endDate, input$startDate),
+               {
+                 
+                 start = as.Date(input$startDate, format = "%Y-%m-%d")
+                 end = as.Date(input$endDate, format = "%Y-%m-%d")
+                 print(start)
+                 print(end)
+                 df = newtable$table[newtable$table$`Close Date` > start & newtable$table$`Close Date` < end,]
+                 output$mytable = renderDataTable(df)
+                 newtable$table = df
+               })
+  
   observeEvent(input$columns, {
     if("all" %in% input$columns && length(input$columns) == 1){
       df = merge2
