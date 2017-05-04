@@ -7,6 +7,11 @@
 #    http://shiny.rstudio.com/
 #
 
+install.packages('shiny')
+install.packages('readr')
+install.packages('lubridate') #run these 3 lines when you are using this app for the first time
+#Use this hashtag to comment out the lines above once you have installed the packages
+
 library(shiny)
 require(readr)
 library(lubridate)
