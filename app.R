@@ -17,15 +17,16 @@ require(readr)
 library(lubridate)
 
 contacts = read_csv("contacts_cleaned copy.csv")
-contacts <- mutate(contacts, name = paste(First.Name, Last.Name)) 
-contacts1 <- contacts[, c(12,1:11)]
-contacts1 <- contacts1[-c(2:4,12)]
+contacts <- mutate(contacts, name = paste(First_Name, Last_Name)) 
+contacts1 <- contacts[, c(11,4:10)]
+
 
 merge1 = merge(donations, camps, by.x = "Campaign", by.y = "Campaign Name")
 merge2 = merge(merge1, orghistory, by.x = "Organization Name", by.y = "Organization Name")
 merge2 = merge2[1:32161,]
 merge2$`Close Date` = as.Date(merge2$`Close Date`, format = "%m/%d/%Y") + years(2000)
 merge2 = left_join(merge2, contacts1, by = c("Organization Name" = "name"))
+
 
 
 uniquedates = (unique(merge2$`Close Date`))
