@@ -7,19 +7,23 @@
 #    http://shiny.rstudio.com/
 #
 
-install.packages('shiny')
-install.packages('readr')
-install.packages('lubridate') #run these 3 lines when you are using this app for the first time
-#Use this hashtag to comment out the lines above once you have installed the packages
+# install.packages('shiny')
+# install.packages('readr')
+# install.packages('lubridate') #run these 3 lines when you are using this app for the first time
+# #Use this hashtag to comment out the lines above once you have installed the packages
 
 library(shiny)
 require(readr)
 library(lubridate)
+library(dplyr)
 
 contacts = read_csv("contacts_cleaned copy.csv")
 contacts <- mutate(contacts, name = paste(First_Name, Last_Name)) 
 contacts1 <- contacts[, c(11,4:10)]
 
+orghistory = read_csv("Total Organization History Data.csv")
+donations = read_csv("Total Donations.csv")
+camps = read_csv("Total Campaigns.csv")
 
 merge1 = merge(donations, camps, by.x = "Campaign", by.y = "Campaign Name")
 merge2 = merge(merge1, orghistory, by.x = "Organization Name", by.y = "Organization Name")
