@@ -16,6 +16,7 @@ library(shiny)
 require(readr)
 library(lubridate)
 library(dplyr)
+library(ggplot2)
 
 contacts = read_csv("contacts_cleaned copy.csv")
 contacts <- mutate(contacts, name = paste(First_Name, Last_Name)) 
@@ -101,8 +102,26 @@ tabPanel(
   )
   
 ),
-tabPanel( "Vis page"
-  ##visualization goes here.
+tabPanel( "Visualization page"
+          , titlePanel("Visualization"),
+          sidebarLayout(
+            sidebarPanel(
+              selectInput(inputId = "visx",
+                          label = "X axis",
+                          choices = names(donations),
+                          selected = "Amount"
+                          ),
+              selectInput(inputId = 'visy',
+                          label = "Y axis",
+                          choices = names(donations),
+                          selected = "Amount"
+                
+              )
+            ),
+            mainPanel(
+              plotOutput('plot')
+            )
+          )
   
 )
    
@@ -115,13 +134,15 @@ server <- function(input, output) {
   df= merge2
   newtable$table = df
   
+  #this section contains observers for the table tab
+  {
   observeEvent(c(input$endDate, input$startDate),
                {
                  
                  start = as.Date(input$startDate, format = "%Y-%m-%d")
                  end = as.Date(input$endDate, format = "%Y-%m-%d")
-                 print(start)
-                 print(end)
+                 # print(start)
+                 # print(end)
                  df = newtable$table[newtable$table$`Close Date` > start & newtable$table$`Close Date` < end,]
                  output$mytable = renderDataTable(df)
                  newtable$table = df
@@ -210,6 +231,18 @@ server <- function(input, output) {
     }
   }
   )
+  }
+  #this section contains observers for the visualization tab
+  {
+    observeEvent(c(input$visy, input$visx), {
+      output$plot = renderPlot({
+
+        ggplot(data = donations, mapping = aes_string(x = (input$visx), y = input$visy))+
+          geom_violin() + scale_y_log10()
+
+      })
+      })
+  }
 }
 
 shinyApp(ui = ui, server = server)
